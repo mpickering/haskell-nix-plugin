@@ -5,8 +5,10 @@
  # Options to pass to the plugin, the first argument is the directoy the plugin
  # should place any files it creates.
 , pluginOpts ? (out-path: [])
+# Additional system dependencies to run the finalPhase
+, pluginDepends ? []
 # The script to run after the plugin has compiled
-, finalPhase ? ""
+, finalPhase ? (out-path: [])
 }:
 pkg:
 let
@@ -30,16 +32,18 @@ let
                     mkdir -p ${pluginOutputDir}
                     echo Plugin output directory: ${pluginOutputDir}'';
                   # Give the plugin some chance to collate the results.
-                  postBuild  = finalPhase;
+                  postBuild  = finalPhase pluginOutputDir;
                 });
 
   # Build the plugin options.
   string-opt = arg:  "-fplugin-opt=${pluginName}:${arg}";
   string-opts = lib.concatMapStrings string-opt (pluginOpts "${pluginOutputDir}");
+
+  additionalDepends = [pluginPackage] ++ pluginDepends;
 in
   with hlib;
   phases (
     addOutput (
-    (addBuildDepend
-    (appendBuildFlag pkg "--ghc-options=\"-fplugin=${pluginName} -plugin-package=${pluginPackage.pname} ${string-opts}\"") pluginPackage)))
+    (addBuildDepends
+    (appendBuildFlag pkg "--ghc-options=\"-fplugin=${pluginName} -plugin-package=${pluginPackage.pname} ${string-opts}\"") additionalDepends)))
 
