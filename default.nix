@@ -1,11 +1,13 @@
 let
-  nixpkgs = import <nixpkgs> {} ;
-  addPlugin = nixpkgs.callPackage ./add-plugin.nix {};
+  plugin-overlay-git = builtins.fetchGit
+   { url = https://github.com/mpickering/haskell-nix-plugin.git;}  ;
+  plugin-overlay = import "${plugin-overlay-git}/overlay.nix";
+  nixpkgs = import <nixpkgs> { overlays = [plugin-overlay]; };
+
+
   hp = nixpkgs.haskellPackages;
-  plugins = import ./plugins.nix hp;
+  plugins = nixpkgs.haskell.plugins hp;
   dump-core-plugin = plugins.dump-core;
-
-
 in
-  (addPlugin dump-core-plugin hp.either).DumpCore
+  (nixpkgs.haskell.lib.addPlugin dump-core-plugin hp.either).DumpCore
 
