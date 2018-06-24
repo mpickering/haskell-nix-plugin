@@ -7,5 +7,6 @@ self: super: {
               { addPlugin = super.callPackage ./add-plugin.nix {}; };
       packageOverrides =
         sel: sup:
-          { withPlugin = import ./ghc-with-plugins.nix {hp = sel; haskell = self.haskell; }; }; });
+          super.haskell.packageOverrides //
+          { withPlugin = import ./with-plugin.nix {hp = sel; haskell = self.haskell; }; }; });
 }
