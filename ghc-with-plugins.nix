@@ -1,4 +1,4 @@
-{hp, haskell, lib
+{hp, haskell
 }:
 func:
-hp.ghcWithPackages (func (haskell.plugins hp))
+func (haskell.plugins hp) hp
