@@ -5,8 +5,8 @@ self: super: {
       plugins = import ./plugins.nix;
       lib = super.haskell.lib //
               { addPlugin = super.callPackage ./add-plugin.nix {}; };
-      packageOverrides =
+      overrides =
         sel: sup:
-          super.haskell.packageOverrides //
+          super.haskell.overrides //
           { withPlugin = import ./with-plugin.nix {hp = sel; haskell = self.haskell; }; }; });
 }
