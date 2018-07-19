@@ -135,3 +135,12 @@ let
 in ...
 ```
 
+### Using NUR
+
+The overlay is also distributed using [NUR](https://github.com/nix-community/NUR). Here is an example of how to use it:
+
+```
+overlay = (import <nixpkgs> {}).nur.repos.mpickering.overlays.haskell-plugins;
+nixpkgs = import <nixpkgs> { overlays = [ overlay ]; };
+```
+
