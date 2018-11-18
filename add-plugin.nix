@@ -7,6 +7,8 @@
 , pluginOpts ? (out-path: [])
 # Additional system dependencies to run the finalPhase
 , pluginDepends ? []
+# The script to run before the plugin has compiled
+, initPhase ? (out-path: [])
 # The script to run after the plugin has compiled
 , finalPhase ? (out-path: [])
 }:
@@ -31,6 +33,7 @@ let
                   postUnpack = ''
                     mkdir -p ${pluginOutputDir}
                     echo Plugin output directory: ${pluginOutputDir}'';
+                  preBuild   = initPhase pluginOutputDir;
                   # Give the plugin some chance to collate the results.
                   postBuild  = finalPhase pluginOutputDir;
                 });
