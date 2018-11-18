@@ -16,6 +16,8 @@ pkg:
 let
   hlib = haskell.lib;
 
+  normPluginName = builtins.replaceStrings ["."] ["-"] pluginName
+
   # The bash string which will expand to the output directory when
   # the builder runs.
   pluginOutputDir = "$" + pluginName;
@@ -25,7 +27,7 @@ let
   # it on the `either` package then we can access its output at
   # the attribute `either.DumpCore`.
   addOutput = drv: drv.overrideAttrs(oldAttrs:
-                  { outputs = (oldAttrs.outputs ++ [ pluginName ]); });
+                  { outputs = (oldAttrs.outputs ++ [ normPluginName ]); });
 
   phases = drv: hlib.overrideCabal drv (drv: {
                   # Make the output even if the plugin doesn't output
