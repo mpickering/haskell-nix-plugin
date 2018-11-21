@@ -14,35 +14,41 @@
 }:
 pkg:
 let
+  args = { outpath = pluginOutputDir; inherit pkg; };
   hlib = haskell.lib;
 
-  normPluginName = builtins.replaceStrings ["."] ["-"] pluginName
+  normPluginName = "plugin" + builtins.replaceStrings ["."] [""] pluginName;
+
+#  normPluginName = "plugin";
 
   # The bash string which will expand to the output directory when
   # the builder runs.
-  pluginOutputDir = "$" + pluginName;
+  pluginOutputDir = "$" + normPluginName;
 
   # Create a new output for the plugin to put files into.
   # For example, if the plugin is called `DumpCore` and we run
   # it on the `either` package then we can access its output at
   # the attribute `either.DumpCore`.
   addOutput = drv: drv.overrideAttrs(oldAttrs:
-                  { outputs = (oldAttrs.outputs ++ [ normPluginName ]); });
+                  { outputs = (oldAttrs.outputs ++ [ normPluginName ]);
+                });
 
   phases = drv: hlib.overrideCabal drv (drv: {
                   # Make the output even if the plugin doesn't output
                   # anything.
                   postUnpack = ''
+                    echo ${pluginOutputDir}
+                    echo ${normPluginName}
                     mkdir -p ${pluginOutputDir}
                     echo Plugin output directory: ${pluginOutputDir}'';
-                  preBuild   = initPhase pluginOutputDir;
                   # Give the plugin some chance to collate the results.
-                  postBuild  = finalPhase pluginOutputDir;
+                  preBuild   = initPhase args;
+                  postBuild  = finalPhase args;
                 });
 
   # Build the plugin options.
-  string-opt = arg:  "-fplugin-opt=${pluginName}:${arg}";
-  string-opts = lib.concatMapStrings string-opt (pluginOpts "${pluginOutputDir}");
+  string-opt = arg:  " -fplugin-opt=${pluginName}:${arg}";
+  string-opts = lib.concatMapStrings string-opt (pluginOpts args);
 
   additionalDepends = [pluginPackage] ++ pluginDepends;
 in
@@ -50,5 +56,5 @@ in
   phases (
     addOutput (
     (addBuildDepends
-    (appendBuildFlag pkg "--ghc-options=\"-fplugin=${pluginName} -plugin-package=${pluginPackage.pname} ${string-opts}\"") additionalDepends)))
+    (appendBuildFlag pkg "--ghc-options=\"-fno-safe-haskell -fno-safe-infer -fplugin=${pluginName} -plugin-package=${pluginPackage.pname} ${string-opts}\"") additionalDepends)))
 
